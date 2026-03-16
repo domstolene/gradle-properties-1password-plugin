@@ -76,10 +76,10 @@ Build a Gradle plugin that resolves project properties prefixed with `op://` usi
 - Plan and implementation stay aligned for first release.
 
 ## Delivery checklist
-- [ ] Plugin scaffold and metadata in place
-- [ ] `op://` resolution implemented
-- [ ] CLI client with robust error handling
-- [ ] Unit tests added and passing
-- [ ] Functional tests added and passing
-- [ ] `check` includes all test suites
-- [ ] README updated for user guidance
+- [x] Plugin scaffold and metadata in place
+- [x] `op://` resolution implemented
+- [x] CLI client with robust error handling
+- [x] Unit tests added and passing
+- [x] Functional tests added and passing
+- [x] `check` includes all test suites
+- [x] README updated for user guidance
