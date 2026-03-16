@@ -69,7 +69,7 @@ class OnePasswordGradlePropertiesPluginFunctionalTest {
     }
 
     @Test
-    void revokesConfigurationCacheWhenSecretChanges() throws IOException {
+    void doNotInvalidateConfigurationCacheWhenSecretChanges() throws IOException {
         assumePosix();
         Path secretFile = projectDir.resolve("secret.txt");
         Path invocationCountFile = projectDir.resolve("op-invocations.txt");
@@ -85,9 +85,65 @@ class OnePasswordGradlePropertiesPluginFunctionalTest {
 
         BuildResult secondRun = runBuildWithConfigurationCache("printToken");
 
-        assertOutputContains(secondRun, "TOKEN=changed-secret", "second run should reflect updated secret value");
-        assertOutputContains(secondRun, "cannot be reused", "cache entry should be invalidated after secret change");
-        assertOutputContains(secondRun, "Configuration cache entry stored", "second run should store a fresh cache entry");
+        assertOutputContains(secondRun, "TOKEN=functional-secret", "second run should use cached token even after secret change");
+        assertOutputContains(secondRun, "Configuration cache entry reused", "second run should reuse cached configuration");
+        assertEquals(1, readInvocationCount(invocationCountFile));
+    }
+
+    @Test
+    void opIsNotCalledWhenConfigurationCacheHasSecret() throws IOException {
+        assumePosix();
+        Path secretFile = projectDir.resolve("secret.txt");
+        Path invocationCountFile = projectDir.resolve("op-invocations.txt");
+        Files.writeString(secretFile, "functional-secret\n");
+        Path opMock = createStatefulOpMock(secretFile, invocationCountFile);
+        writeProjectFiles(opMock, "TOKEN=op://vault/item/field");
+
+        BuildResult firstRun = runBuildWithConfigurationCache("printToken");
+        assertOutputContains(firstRun, "TOKEN=functional-secret", "first run should resolve token");
+        assertEquals(1, readInvocationCount(invocationCountFile));
+
+        Files.writeString(
+                opMock,
+                "#!/usr/bin/env bash\n" +
+                        "set -euo pipefail\n" +
+                        "echo 'op should not be called when configuration cache is reused' >&2\n" +
+                        "exit 99\n"
+        );
+        Files.setPosixFilePermissions(
+                opMock,
+                Set.of(
+                        PosixFilePermission.OWNER_READ,
+                        PosixFilePermission.OWNER_WRITE,
+                        PosixFilePermission.OWNER_EXECUTE
+                )
+        );
+
+        BuildResult secondRun = runBuildWithConfigurationCache("printToken");
+
+        assertOutputContains(secondRun, "TOKEN=functional-secret", "second run should use cached token");
+        assertOutputContains(secondRun, "Configuration cache entry reused", "second run should reuse configuration cache");
+        assertEquals(1, readInvocationCount(invocationCountFile));
+    }
+
+    @Test
+    void invalidationCacheWithNoConfigurationCacheGradleArgumentWillReadChangedSecretFromOp() throws IOException {
+        assumePosix();
+        Path secretFile = projectDir.resolve("secret.txt");
+        Path invocationCountFile = projectDir.resolve("op-invocations.txt");
+        Files.writeString(secretFile, "functional-secret\n");
+        Path opMock = createStatefulOpMock(secretFile, invocationCountFile);
+        writeProjectFiles(opMock, "TOKEN=op://vault/item/field");
+
+        BuildResult firstRun = runBuild("printToken");
+        assertOutputContains(firstRun, "TOKEN=functional-secret", "first run should resolve initial token");
+        assertEquals(1, readInvocationCount(invocationCountFile));
+
+        Files.writeString(secretFile, "changed-secret\n");
+
+        BuildResult secondRun = runBuild("printToken");
+
+        assertOutputContains(secondRun, "TOKEN=changed-secret", "second run should resolve changed secret without configuration cache");
         assertEquals(2, readInvocationCount(invocationCountFile));
     }
 

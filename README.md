@@ -23,6 +23,19 @@ val githubToken: String by project
 print("Resolved GitHub token: $githubToken")
 ```
 
+### Configuration cache
+
+This plugin is compatible with the [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html). 
+When configuration cache is enabled, the secrets are stored in the 
+configuration cache and reused on later builds. The 1Password CLI is 
+not called again until the cache is invalidated.
+
+If you need to update secrets, invalidate the cache when running gradle:
+
+```shell
+gradle --no-configuration-cache clean build
+```
+
 
 ## Behavior
 
@@ -30,6 +43,7 @@ print("Resolved GitHub token: $githubToken")
 - String property values not starting with `op://` are left unchanged.
 - The resolved value is trimmed before being set as the project property.
 - Secret values are never included in plugin error messages.
+- Secret values are stored to the configuration cache.
 
 
 ## Configuration

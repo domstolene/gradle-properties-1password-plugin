@@ -1,6 +1,8 @@
+import org.gradle.plugin.compatibility.compatibility
+
 plugins {
     `java-gradle-plugin`
-    id("com.gradle.plugin-publish") version "2.0.0"
+    id("com.gradle.plugin-publish") version "2.1.0"
 }
 
 group = "no.domstolene"
@@ -50,6 +52,12 @@ gradlePlugin {
             description = "A plugin that resolves op:// paths in gradle properties with 1Password CLI"
             tags = listOf("1password", "secrets")
             implementationClass = "no.domstolene.gradle.properties.onepassword.OnePasswordGradlePropertiesPlugin"
+
+            compatibility { // extension added by the Compatibility plugin
+                features {
+                    configurationCache = true // or false if the feature isn't supported
+                }
+            }
         }
     }
 }
