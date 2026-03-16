@@ -1,6 +1,6 @@
 plugins {
     `java-gradle-plugin`
-    `maven-publish`
+    id("com.gradle.plugin-publish") version "2.0.0"
 }
 
 group = "no.domstolene"
@@ -41,12 +41,15 @@ dependencies {
 }
 
 gradlePlugin {
+    website = "https://github.com/domstolene/gradle-properties-1password-plugin"
+    vcsUrl = "https://github.com/domstolene/gradle-properties-1password-plugin"
     plugins {
-        create("onePasswordGradleProperties") {
-            id = "no.domstolene.gradle.properties.1password"
+        register("1PasswordProperties") {
+            id = "no.domstolene.1password.properties"
+            displayName = "1Password gradle properties with op:// paths"
+            description = "A plugin that resolves op:// paths in gradle properties with 1Password CLI"
+            tags = listOf("1password", "secrets")
             implementationClass = "no.domstolene.gradle.properties.onepassword.OnePasswordGradlePropertiesPlugin"
-            displayName = "1Password-backed Gradle properties"
-            description = "Resolves project properties prefixed with op:// through the 1Password CLI."
         }
     }
 }

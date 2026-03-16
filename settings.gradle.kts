@@ -1,1 +1,1 @@
-rootProject.name = "gradle-properties-1password-plugin"
+rootProject.name = "1password-properties"
