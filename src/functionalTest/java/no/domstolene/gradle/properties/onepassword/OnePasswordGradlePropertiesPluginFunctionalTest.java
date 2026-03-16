@@ -57,7 +57,7 @@ class OnePasswordGradlePropertiesPluginFunctionalTest {
         Files.writeString(
                 projectDir.resolve("build.gradle.kts"),
                 "plugins {\n" +
-                        "    id(\"no.domstolene.gradle.properties.1password\")\n" +
+                        "    id(\"no.domstolene.1password.properties\")\n" +
                         "}\n" +
                         "\n" +
                         "tasks.register(\"printToken\") {\n" +
