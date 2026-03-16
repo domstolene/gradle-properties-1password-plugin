@@ -1,9 +1,19 @@
 plugins {
     `java-gradle-plugin`
+    `maven-publish`
 }
 
 group = "no.domstolene"
-version = "0.1.0"
+version = providers.gradleProperty("releaseVersion").orElse("dev-SNAPSHOT").get()
+
+val githubPackagesUser = providers.gradleProperty("GITHUB_USER")
+    .orElse(providers.gradleProperty("githubUser"))
+    .orElse(providers.environmentVariable("GITHUB_ACTOR"))
+    .orElse(providers.environmentVariable("GITHUB_USER"))
+
+val githubPackagesToken = providers.gradleProperty("GITHUB_TOKEN")
+    .orElse(providers.gradleProperty("githubToken"))
+    .orElse(providers.environmentVariable("GITHUB_TOKEN"))
 
 repositories {
     mavenCentral()
@@ -57,3 +67,17 @@ val functionalTestTask = tasks.register<Test>("functionalTest") {
 tasks.check {
     dependsOn(functionalTestTask)
 }
+
+configure<org.gradle.api.publish.PublishingExtension> {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/domstolene/gradle-properties-1password-plugin")
+            credentials {
+                username = githubPackagesUser.orNull
+                password = githubPackagesToken.orNull
+            }
+        }
+    }
+}
+
